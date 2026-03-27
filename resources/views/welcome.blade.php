@@ -8,27 +8,28 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
     <style>
+        /* Selaras dengan layouts.auth: gray-100 / dark:gray-900 + kartu gray-800 */
         :root {
-            --bg: #fdfdfc;
-            --fg: #1b1b18;
-            --muted: #706f6c;
+            --bg: #f3f4f6;
+            --fg: #1f2937;
+            --muted: #4b5563;
             --card: #ffffff;
-            --border: rgba(26, 26, 0, 0.16);
-            --accent: #1b1b18;
+            --border: rgba(229, 231, 235, 1);
+            --accent: #2563eb;
             --accent-contrast: #ffffff;
-            --img-bg: #e8eef2;
+            --img-bg: #e5e7eb;
         }
 
         @media (prefers-color-scheme: dark) {
             :root {
-                --bg: #0a0a0a;
-                --fg: #ededec;
-                --muted: #a1a09a;
-                --card: #161615;
-                --border: rgba(255, 250, 237, 0.18);
-                --accent: #eeeeec;
-                --accent-contrast: #1c1c1a;
-                --img-bg: #1a2228;
+                --bg: #111827;
+                --fg: #f3f4f6;
+                --muted: #9ca3af;
+                --card: #1f2937;
+                --border: #374151;
+                --accent: #2563eb;
+                --accent-contrast: #ffffff;
+                --img-bg: #111827;
             }
         }
 
@@ -95,6 +96,7 @@
 
         nav a:hover {
             border-color: var(--border);
+            color: var(--fg);
         }
 
         nav a.nav-solid {
@@ -104,7 +106,7 @@
         }
 
         nav a.nav-solid:hover {
-            filter: brightness(1.05);
+            filter: brightness(1.08);
         }
 
         .card {
@@ -113,7 +115,14 @@
             width: 100%;
             border-radius: 0.5rem;
             overflow: hidden;
-            box-shadow: inset 0 0 0 1px var(--border);
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.06);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .card {
+                box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.25), 0 2px 4px -2px rgb(0 0 0 / 0.2);
+            }
         }
 
         @media (min-width: 1024px) {
@@ -126,7 +135,6 @@
             order: 2;
             padding: 2.5rem 1.5rem 3rem;
             background: var(--card);
-            box-shadow: inset 0 0 0 1px var(--border);
         }
 
         @media (min-width: 1024px) {
@@ -166,9 +174,10 @@
 
         .cta a {
             display: inline-block;
-            padding: 0.4rem 1.25rem;
-            border-radius: 0.125rem;
+            padding: 0.5rem 1.25rem;
+            border-radius: 0.375rem;
             font-size: 0.875rem;
+            font-weight: 500;
             text-decoration: none;
             background: var(--accent);
             color: var(--accent-contrast);
@@ -179,6 +188,16 @@
             background: transparent;
             color: var(--fg);
             border-color: var(--border);
+        }
+
+        .cta a.secondary:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .cta a.secondary:hover {
+                background: rgba(255, 255, 255, 0.08);
+            }
         }
 
         .card-visual {
