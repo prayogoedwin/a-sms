@@ -4,9 +4,11 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 
@@ -73,9 +75,12 @@ class User extends Authenticatable
 
     public function hasPermission(string $permission): bool
     {
-        return $this->roles()->whereHas('permissions', function ($query) use ($permission) {
-            $query->where('name', $permission);
-        })->exists();
+        return DB::table('role_user')
+            ->join('permission_role', 'role_user.role_id', '=', 'permission_role.role_id')
+            ->join('permissions', 'permission_role.permission_id', '=', 'permissions.id')
+            ->where('role_user.user_id', $this->id)
+            ->where('permissions.name', $permission)
+            ->exists();
     }
 
     public function assignRole(string|Role $role): void
@@ -94,5 +99,20 @@ class User extends Authenticatable
         }
 
         $this->roles()->detach($role->id);
+    }
+
+    public function pegawai(): HasOne
+    {
+        return $this->hasOne(Pegawai::class);
+    }
+
+    public function guru(): HasOne
+    {
+        return $this->hasOne(Guru::class);
+    }
+
+    public function siswa(): HasOne
+    {
+        return $this->hasOne(Siswa::class);
     }
 }
