@@ -192,17 +192,70 @@ class AkademikController extends Controller
 
     public function rekapWali(Request $request): View
     {
-        $guru = $this->getGuruAktif($request);
-        abort_if(! $guru, 403);
+        abort_unless($request->user()->hasPermission('view-rekap-wali'), 403);
 
-        $kelas = $guru->waliKelasDi()->with([
-            'siswa',
-            'jadwals.mataPelajaran',
-            'jadwals.nilais',
-            'jadwals.absensis',
-        ])->get();
+        $tahunAjarans = TahunAjaran::query()
+            ->orderByDesc('tanggal_mulai')
+            ->orderByDesc('nama')
+            ->get();
 
-        return view('akademik.rekap-wali', compact('kelas', 'guru'));
+        $tahunAjaranTerbaru = $tahunAjarans->first();
+        $tahunAjaranId = (int) $request->query('tahun_ajaran_id', $tahunAjaranTerbaru?->id);
+        if ($tahunAjaranId && ! $tahunAjarans->contains('id', $tahunAjaranId)) {
+            $tahunAjaranId = $tahunAjaranTerbaru?->id ?? 0;
+        }
+
+        $guruProfil = $this->getGuruAktif($request);
+        $bolehPilihGuru = $guruProfil === null;
+
+        $gurus = $bolehPilihGuru
+            ? Guru::query()->whereHas('waliKelasDi')->orderBy('nama')->get()
+            : collect();
+
+        if ($guruProfil !== null) {
+            $guru = $guruProfil;
+        } else {
+            $guruId = (int) $request->query('guru_id', 0);
+            $guru = null;
+            if ($gurus->isNotEmpty()) {
+                if ($guruId && $gurus->contains(fn ($g) => (int) $g->id === $guruId)) {
+                    $guru = $gurus->firstWhere('id', $guruId);
+                } else {
+                    $guru = $gurus->first();
+                }
+            }
+        }
+
+        if ($guru === null) {
+            return view('akademik.rekap-wali', [
+                'kelas' => collect(),
+                'guru' => null,
+                'bolehPilihGuru' => $bolehPilihGuru,
+                'gurus' => $gurus,
+                'tahunAjarans' => $tahunAjarans,
+                'tahunAjaranId' => $tahunAjaranId,
+            ]);
+        }
+
+        $kelas = $guru->waliKelasDi()
+            ->with([
+                'tingkat',
+                'siswa',
+                'jadwals' => function ($q) use ($tahunAjaranId) {
+                    $q->where('tahun_ajaran_id', $tahunAjaranId)
+                        ->with(['mataPelajaran', 'nilais', 'absensis']);
+                },
+            ])
+            ->get();
+
+        return view('akademik.rekap-wali', [
+            'kelas' => $kelas,
+            'guru' => $guru,
+            'bolehPilihGuru' => $bolehPilihGuru,
+            'gurus' => $gurus,
+            'tahunAjarans' => $tahunAjarans,
+            'tahunAjaranId' => $tahunAjaranId,
+        ]);
     }
 
     public function jadwalSiswa(Request $request): View
