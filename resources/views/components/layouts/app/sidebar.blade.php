@@ -71,28 +71,40 @@
                                     :active="request()->routeIs('master-data.penjadwalan*')">Penjadwalan</x-layouts.sidebar-link>
                             @endif
 
-                            @if(auth()->user()->hasPermission('view-jadwal-mengajar') || auth()->user()->hasPermission('view-jadwal-mengajar-semua') || auth()->user()->hasPermission('view-rekap-wali') || auth()->user()->hasPermission('view-jadwal-siswa') || auth()->user()->hasPermission('view-nilai-siswa') || auth()->user()->hasPermission('view-absensi-siswa'))
+                            @php
+                                $u = auth()->user();
+                                $akademikStaff = $u->hasPermission('view-jadwal-mengajar')
+                                    || $u->hasPermission('view-jadwal-mengajar-semua')
+                                    || $u->hasPermission('view-rekap-wali');
+                                $akademikSiswa = $u->hasRole('siswa')
+                                    && (
+                                        $u->hasPermission('view-jadwal-siswa')
+                                        || $u->hasPermission('view-nilai-siswa')
+                                        || $u->hasPermission('view-absensi-siswa')
+                                    );
+                            @endphp
+                            @if($akademikStaff || $akademikSiswa)
                                 <x-layouts.sidebar-two-level-link-parent title="Akademik" icon="fas-clipboard-check"
                                     :active="request()->routeIs('akademik*')">
-                                    @if(auth()->user()->hasPermission('view-jadwal-mengajar') || auth()->user()->hasPermission('view-jadwal-mengajar-semua'))
+                                    @if($u->hasPermission('view-jadwal-mengajar') || $u->hasPermission('view-jadwal-mengajar-semua'))
                                         <x-layouts.sidebar-two-level-link href="{{ route('akademik.jadwal-guru') }}" icon='fas-calendar-days'
                                             :active="request()->routeIs('akademik.jadwal-guru*') || request()->routeIs('akademik.nilai*') || request()->routeIs('akademik.absensi*') || request()->routeIs('akademik.rekap-absensi*')">
                                             Jadwal Mengajar
                                         </x-layouts.sidebar-two-level-link>
                                     @endif
-                                    @if(auth()->user()->hasPermission('view-rekap-wali'))
+                                    @if($u->hasPermission('view-rekap-wali'))
                                         <x-layouts.sidebar-two-level-link href="{{ route('akademik.rekap-wali') }}" icon='fas-clipboard-list'
                                             :active="request()->routeIs('akademik.rekap-wali*')">Rekap Wali Kelas</x-layouts.sidebar-two-level-link>
                                     @endif
-                                    @if(auth()->user()->hasPermission('view-jadwal-siswa'))
+                                    @if($u->hasRole('siswa') && $u->hasPermission('view-jadwal-siswa'))
                                         <x-layouts.sidebar-two-level-link href="{{ route('akademik.siswa.jadwal') }}" icon='fas-table'
                                             :active="request()->routeIs('akademik.siswa.jadwal')">Jadwal kelas</x-layouts.sidebar-two-level-link>
                                     @endif
-                                    @if(auth()->user()->hasPermission('view-nilai-siswa'))
+                                    @if($u->hasRole('siswa') && $u->hasPermission('view-nilai-siswa'))
                                         <x-layouts.sidebar-two-level-link href="{{ route('akademik.siswa.nilai') }}" icon='fas-star'
                                             :active="request()->routeIs('akademik.siswa.nilai')">Nilai</x-layouts.sidebar-two-level-link>
                                     @endif
-                                    @if(auth()->user()->hasPermission('view-absensi-siswa'))
+                                    @if($u->hasRole('siswa') && $u->hasPermission('view-absensi-siswa'))
                                         <x-layouts.sidebar-two-level-link href="{{ route('akademik.siswa.absensi') }}" icon='fas-user-check'
                                             :active="request()->routeIs('akademik.siswa.absensi')">Absensi</x-layouts.sidebar-two-level-link>
                                     @endif
