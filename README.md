@@ -49,6 +49,25 @@ php artisan migrate --force
 php artisan db:seed --class=RolePermissionSeeder --force
 ```
 
+### Data uji coba (opsional)
+
+Untuk mengisi **tingkat**, **mata pelajaran**, **guru** (beserta akun login), **kelas** dengan wali kelas, **siswa** per kelas, dan **jadwal** tahun ajaran `2025/2026`, jalankan:
+
+```bash
+php artisan db:seed --class=SchoolSampleSeeder --force
+```
+
+Seeder ini juga memanggil `RolePermissionSeeder` di dalamnya, jadi izin dan akun demo Super Admin / Admin Sistem tetap tersedia. Data dibuat dengan `updateOrCreate` (aman dijalankan ulang; baris yang sama akan disesuaikan, bukan duplikat acak).
+
+**Akun contoh dari data uji (password semua: `password`):**
+
+| Peran | Contoh email |
+|-------|----------------|
+| Guru | `guru.budi@example.com` … `guru.yusuf@example.com` (6 guru) |
+| Siswa | `siswa.1A.01@example.com` … per kombinasi kelas & nomor (lihat seeder) |
+
+Login sebagai guru berguna untuk menguji **Jadwal Mengajar**, nilai, dan absensi; sebagai Super Admin untuk melihat **semua jadwal** dengan filter guru/tahun ajaran.
+
 Jalankan server pengembangan:
 
 ```bash
@@ -59,12 +78,14 @@ Buka `http://127.0.0.1:8000` dan login dengan akun demo di bawah.
 
 ---
 
-## Akun demo (setelah seeder)
+## Akun demo (setelah `RolePermissionSeeder` atau `SchoolSampleSeeder`)
 
 | Peran        | Email                 | Password  |
 |-------------|------------------------|-----------|
 | Super Admin | superadmin@example.com | password  |
 | Admin Sistem| admin@example.com    | password  |
+
+Akun **guru** dan **siswa** hanya muncul jika Anda menjalankan **`SchoolSampleSeeder`** (lihat bagian *Data uji coba* di atas).
 
 ---
 
