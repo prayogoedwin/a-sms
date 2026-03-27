@@ -235,6 +235,16 @@ Route::middleware(['auth'])->group(function () {
     Route::get('akademik/rekap-wali', [AkademikController::class, 'rekapWali'])
         ->name('akademik.rekap-wali')
         ->middleware('permission:view-rekap-wali');
+
+    Route::get('akademik/siswa/jadwal', [AkademikController::class, 'jadwalSiswa'])
+        ->name('akademik.siswa.jadwal')
+        ->middleware('permission:view-jadwal-siswa');
+    Route::get('akademik/siswa/nilai', [AkademikController::class, 'nilaiSiswa'])
+        ->name('akademik.siswa.nilai')
+        ->middleware('permission:view-nilai-siswa');
+    Route::get('akademik/siswa/absensi', [AkademikController::class, 'absensiSiswa'])
+        ->name('akademik.siswa.absensi')
+        ->middleware('permission:view-absensi-siswa');
 });
 
 require __DIR__.'/auth.php';

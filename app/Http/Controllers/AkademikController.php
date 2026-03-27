@@ -6,6 +6,7 @@ use App\Models\AbsensiSiswa;
 use App\Models\Guru;
 use App\Models\Jadwal;
 use App\Models\NilaiSiswa;
+use App\Models\Siswa;
 use App\Models\TahunAjaran;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -204,8 +205,136 @@ class AkademikController extends Controller
         return view('akademik.rekap-wali', compact('kelas', 'guru'));
     }
 
+    public function jadwalSiswa(Request $request): View
+    {
+        abort_unless($request->user()->hasPermission('view-jadwal-siswa'), 403);
+
+        $siswa = $this->getSiswaAktif($request);
+        abort_if(! $siswa, 403);
+
+        $tahunAjarans = TahunAjaran::query()
+            ->orderByDesc('tanggal_mulai')
+            ->orderByDesc('nama')
+            ->get();
+
+        $tahunAjaranTerbaru = $tahunAjarans->first();
+        $tahunAjaranId = (int) $request->query('tahun_ajaran_id', $tahunAjaranTerbaru?->id);
+        if ($tahunAjaranId && ! $tahunAjarans->contains('id', $tahunAjaranId)) {
+            $tahunAjaranId = $tahunAjaranTerbaru?->id ?? 0;
+        }
+
+        $siswa->load(['kelas.tingkat']);
+
+        if (! $siswa->kelas_id) {
+            return view('akademik.siswa-jadwal', [
+                'siswa' => $siswa,
+                'jadwals' => collect(),
+                'tahunAjarans' => $tahunAjarans,
+                'tahunAjaranId' => $tahunAjaranId,
+                'tanpaKelas' => true,
+            ]);
+        }
+
+        $hariOrder = ['senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu'];
+        $jadwals = Jadwal::with(['kelas.tingkat', 'mataPelajaran', 'guru', 'tahunAjaran'])
+            ->where('kelas_id', $siswa->kelas_id)
+            ->where('tahun_ajaran_id', $tahunAjaranId)
+            ->get()
+            ->sort(function (Jadwal $a, Jadwal $b) use ($hariOrder) {
+                $ha = array_search($a->hari, $hariOrder, true);
+                $hb = array_search($b->hari, $hariOrder, true);
+                if ($ha !== $hb) {
+                    return $ha <=> $hb;
+                }
+
+                return strcmp((string) $a->jam_mulai, (string) $b->jam_mulai);
+            })
+            ->values();
+
+        return view('akademik.siswa-jadwal', [
+            'siswa' => $siswa,
+            'jadwals' => $jadwals,
+            'tahunAjarans' => $tahunAjarans,
+            'tahunAjaranId' => $tahunAjaranId,
+            'tanpaKelas' => false,
+        ]);
+    }
+
+    public function nilaiSiswa(Request $request): View
+    {
+        abort_unless($request->user()->hasPermission('view-nilai-siswa'), 403);
+
+        $siswa = $this->getSiswaAktif($request);
+        abort_if(! $siswa, 403);
+
+        $tahunAjarans = TahunAjaran::query()
+            ->orderByDesc('tanggal_mulai')
+            ->orderByDesc('nama')
+            ->get();
+
+        $tahunAjaranTerbaru = $tahunAjarans->first();
+        $tahunAjaranId = (int) $request->query('tahun_ajaran_id', $tahunAjaranTerbaru?->id);
+        if ($tahunAjaranId && ! $tahunAjarans->contains('id', $tahunAjaranId)) {
+            $tahunAjaranId = $tahunAjaranTerbaru?->id ?? 0;
+        }
+
+        $nilais = NilaiSiswa::query()
+            ->where('siswa_id', $siswa->id)
+            ->whereHas('jadwal', fn ($q) => $q->where('tahun_ajaran_id', $tahunAjaranId))
+            ->with(['jadwal.mataPelajaran', 'jadwal.kelas.tingkat', 'jadwal.tahunAjaran', 'guruPenilai'])
+            ->get()
+            ->sortBy(fn (NilaiSiswa $n) => optional($n->jadwal?->mataPelajaran)->nama ?? '')
+            ->values();
+
+        return view('akademik.siswa-nilai', [
+            'siswa' => $siswa,
+            'nilais' => $nilais,
+            'tahunAjarans' => $tahunAjarans,
+            'tahunAjaranId' => $tahunAjaranId,
+        ]);
+    }
+
+    public function absensiSiswa(Request $request): View
+    {
+        abort_unless($request->user()->hasPermission('view-absensi-siswa'), 403);
+
+        $siswa = $this->getSiswaAktif($request);
+        abort_if(! $siswa, 403);
+
+        $tahunAjarans = TahunAjaran::query()
+            ->orderByDesc('tanggal_mulai')
+            ->orderByDesc('nama')
+            ->get();
+
+        $tahunAjaranTerbaru = $tahunAjarans->first();
+        $tahunAjaranId = (int) $request->query('tahun_ajaran_id', $tahunAjaranTerbaru?->id);
+        if ($tahunAjaranId && ! $tahunAjarans->contains('id', $tahunAjaranId)) {
+            $tahunAjaranId = $tahunAjaranTerbaru?->id ?? 0;
+        }
+
+        $absensis = AbsensiSiswa::query()
+            ->where('siswa_id', $siswa->id)
+            ->whereHas('jadwal', fn ($q) => $q->where('tahun_ajaran_id', $tahunAjaranId))
+            ->with(['jadwal.mataPelajaran', 'jadwal.tahunAjaran'])
+            ->orderByDesc('tanggal')
+            ->orderBy('jadwal_id')
+            ->get();
+
+        return view('akademik.siswa-absensi', [
+            'siswa' => $siswa,
+            'absensis' => $absensis,
+            'tahunAjarans' => $tahunAjarans,
+            'tahunAjaranId' => $tahunAjaranId,
+        ]);
+    }
+
     private function getGuruAktif(Request $request): ?Guru
     {
         return Guru::where('user_id', $request->user()->id)->first();
+    }
+
+    private function getSiswaAktif(Request $request): ?Siswa
+    {
+        return Siswa::where('user_id', $request->user()->id)->first();
     }
 }

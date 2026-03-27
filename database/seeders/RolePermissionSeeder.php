@@ -72,6 +72,9 @@ class RolePermissionSeeder extends Seeder
             'input-nilai',
             'input-absensi',
             'view-rekap-wali',
+            'view-jadwal-siswa',
+            'view-nilai-siswa',
+            'view-absensi-siswa',
         ];
 
         foreach ($permissions as $permissionName) {
@@ -116,6 +119,12 @@ class RolePermissionSeeder extends Seeder
             'view-rekap-wali',
         ])->pluck('id');
 
+        $siswaAkademikPermissions = Permission::whereIn('name', [
+            'view-jadwal-siswa',
+            'view-nilai-siswa',
+            'view-absensi-siswa',
+        ])->pluck('id');
+
         $superAdminRole->permissions()->sync(Permission::all()->pluck('id')->all());
         $adminSistemRole->permissions()->sync(
             $manajemenAksesPermissions
@@ -136,7 +145,7 @@ class RolePermissionSeeder extends Seeder
         );
         $guruRole->permissions()->sync($akademikPermissions->values()->all());
         $pimpinanRole->permissions()->sync([]);
-        $siswaRole->permissions()->sync([]);
+        $siswaRole->permissions()->sync($siswaAkademikPermissions->values()->all());
 
         $superAdmin = User::firstOrCreate(
             ['email' => 'superadmin@example.com'],
