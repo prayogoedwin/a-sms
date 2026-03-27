@@ -57,7 +57,8 @@
         .dark .bg-sidebar { background-color: #1f2937; }
         .dark .text-sidebar-foreground { color: #f3f4f6; }
     </style>
-    
+    @stack('styles')
+
     <script>
         window.setAppearance = function(appearance) {
             let setDark = () => document.documentElement.classList.add('dark')
@@ -168,6 +169,7 @@
             </main>
         </div>
     </div>
+    @stack('scripts')
 </body>
 
 </html>

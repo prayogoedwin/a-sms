@@ -11,7 +11,7 @@
     </div>
 
     <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 overflow-x-auto">
-        <table class="min-w-full text-sm">
+        <table id="dt-guru" class="min-w-full text-sm">
             <thead>
                 <tr class="text-left border-b border-gray-200 dark:border-gray-700">
                     <th class="py-2 pr-4">Nama</th>
@@ -21,12 +21,12 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse($gurus as $guru)
+                @foreach($gurus as $guru)
                     <tr class="border-b border-gray-100 dark:border-gray-700">
                         <td class="py-2 pr-4">{{ $guru->nama }}</td>
                         <td class="py-2 pr-4">{{ $guru->nip ?: '-' }}</td>
                         <td class="py-2 pr-4">{{ $guru->user->email }}</td>
-                        <td class="py-2 pr-4 text-right">
+                        <td class="py-2 pr-4 text-right whitespace-nowrap">
                             @if(auth()->user()->hasPermission('edit-gurus'))
                                 <a href="{{ route('data-pengguna.guru.edit', $guru) }}" class="text-blue-600 dark:text-blue-400 hover:underline mr-3">Edit</a>
                             @endif
@@ -34,15 +34,15 @@
                                 <form method="POST" action="{{ route('data-pengguna.guru.destroy', $guru) }}" class="inline" onsubmit="return confirm('Hapus data guru ini?')">
                                     @csrf
                                     @method('DELETE')
-                                    <button class="text-red-600 dark:text-red-400 hover:underline">Hapus</button>
+                                    <button type="submit" class="text-red-600 dark:text-red-400 hover:underline">Hapus</button>
                                 </form>
                             @endif
                         </td>
                     </tr>
-                @empty
-                    <tr><td colspan="4" class="py-4 text-gray-500">Belum ada data guru.</td></tr>
-                @endforelse
+                @endforeach
             </tbody>
         </table>
     </div>
+
+    <x-datatables-client table-id="dt-guru" />
 </x-layouts.app>

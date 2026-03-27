@@ -11,7 +11,7 @@
     </div>
 
     <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 overflow-x-auto">
-        <table class="min-w-full text-sm">
+        <table id="dt-siswa" class="min-w-full text-sm">
             <thead>
                 <tr class="text-left border-b border-gray-200 dark:border-gray-700">
                     <th class="py-2 pr-4">Nama</th>
@@ -22,13 +22,13 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse($siswas as $siswa)
+                @foreach($siswas as $siswa)
                     <tr class="border-b border-gray-100 dark:border-gray-700">
                         <td class="py-2 pr-4">{{ $siswa->nama }}</td>
                         <td class="py-2 pr-4">{{ $siswa->nis ?: '-' }}</td>
                         <td class="py-2 pr-4">{{ $siswa->kelas?->tingkat?->nama }} {{ $siswa->kelas?->nama_kelas }}</td>
                         <td class="py-2 pr-4">{{ $siswa->user->email }}</td>
-                        <td class="py-2 pr-4 text-right">
+                        <td class="py-2 pr-4 text-right whitespace-nowrap">
                             @if(auth()->user()->hasPermission('edit-siswas'))
                                 <a href="{{ route('data-pengguna.siswa.edit', $siswa) }}" class="text-blue-600 dark:text-blue-400 hover:underline mr-3">Edit</a>
                             @endif
@@ -36,15 +36,15 @@
                                 <form method="POST" action="{{ route('data-pengguna.siswa.destroy', $siswa) }}" class="inline" onsubmit="return confirm('Hapus data siswa ini?')">
                                     @csrf
                                     @method('DELETE')
-                                    <button class="text-red-600 dark:text-red-400 hover:underline">Hapus</button>
+                                    <button type="submit" class="text-red-600 dark:text-red-400 hover:underline">Hapus</button>
                                 </form>
                             @endif
                         </td>
                     </tr>
-                @empty
-                    <tr><td colspan="5" class="py-4 text-gray-500">Belum ada data siswa.</td></tr>
-                @endforelse
+                @endforeach
             </tbody>
         </table>
     </div>
+
+    <x-datatables-client table-id="dt-siswa" />
 </x-layouts.app>
