@@ -36,8 +36,6 @@
                         <td class="py-2 pr-4 capitalize">{{ $p->metode }}</td>
                         <td class="py-2 pr-4">{{ $p->dicatatOleh->name }}</td>
                     </tr>
-                @empty
-                    <tr><td colspan="6" class="py-4 text-gray-500">Belum ada pembayaran.</td></tr>
                 @endforelse
             </tbody>
         </table>

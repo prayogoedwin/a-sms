@@ -90,8 +90,6 @@
                             @endif
                         </td>
                     </tr>
-                @empty
-                    <tr><td colspan="7" class="py-4 text-gray-500">Belum ada tagihan.</td></tr>
                 @endforelse
             </tbody>
         </table>

@@ -53,8 +53,6 @@
                             <a href="{{ route('keuangan.assign-jenis-pembayaran.edit', $siswa) }}" class="text-blue-600 dark:text-blue-400 hover:underline">Assign</a>
                         </td>
                     </tr>
-                @empty
-                    <tr><td colspan="5" class="py-4 text-gray-500">Tidak ada siswa.</td></tr>
                 @endforelse
             </tbody>
         </table>
