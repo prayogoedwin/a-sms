@@ -471,7 +471,7 @@ class KeuanganController extends Controller
     public function verifikasiPengajuanIndex(): View
     {
         $pengajuans = PengajuanPembayaran::with(['siswa.kelas', 'orangTua'])
-            ->orderByRaw("FIELD(status, 'menunggu', 'disetujui', 'ditolak')")
+            ->orderByRaw("CASE status WHEN 'menunggu' THEN 1 WHEN 'disetujui' THEN 2 WHEN 'ditolak' THEN 3 ELSE 4 END")
             ->orderByDesc('created_at')
             ->get();
 
