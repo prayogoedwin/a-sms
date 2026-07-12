@@ -75,6 +75,21 @@ class RolePermissionSeeder extends Seeder
             'view-jadwal-siswa',
             'view-nilai-siswa',
             'view-absensi-siswa',
+            'view-jenis-pembayarans',
+            'create-jenis-pembayarans',
+            'edit-jenis-pembayarans',
+            'delete-jenis-pembayarans',
+            'view-tarif-pembayarans',
+            'create-tarif-pembayarans',
+            'edit-tarif-pembayarans',
+            'delete-tarif-pembayarans',
+            'view-tagihan-bulanans',
+            'create-tagihan-bulanans',
+            'input-pembayaran',
+            'view-pembayarans',
+            'cetak-tagihan',
+            'view-laporan-keuangan',
+            'download-laporan-keuangan',
         ];
 
         foreach ($permissions as $permissionName) {
@@ -85,6 +100,7 @@ class RolePermissionSeeder extends Seeder
         $adminSistemRole = Role::firstOrCreate(['name' => 'admin-sistem']);
         $pimpinanRole = Role::firstOrCreate(['name' => 'pimpinan']);
         $pegawaiRole = Role::firstOrCreate(['name' => 'pegawai']);
+        $pegawaiLainnyaRole = Role::firstOrCreate(['name' => 'pegawai-lainnya']);
         $guruRole = Role::firstOrCreate(['name' => 'guru']);
         $siswaRole = Role::firstOrCreate(['name' => 'siswa']);
 
@@ -125,6 +141,40 @@ class RolePermissionSeeder extends Seeder
             'view-absensi-siswa',
         ])->pluck('id');
 
+        $keuanganFullPermissions = Permission::whereIn('name', [
+            'view-jenis-pembayarans',
+            'create-jenis-pembayarans',
+            'edit-jenis-pembayarans',
+            'delete-jenis-pembayarans',
+            'view-tarif-pembayarans',
+            'create-tarif-pembayarans',
+            'edit-tarif-pembayarans',
+            'delete-tarif-pembayarans',
+            'view-tagihan-bulanans',
+            'create-tagihan-bulanans',
+            'input-pembayaran',
+            'view-pembayarans',
+            'cetak-tagihan',
+            'view-laporan-keuangan',
+            'download-laporan-keuangan',
+        ])->pluck('id');
+
+        $keuanganViewPermissions = Permission::whereIn('name', [
+            'view-jenis-pembayarans',
+            'view-tarif-pembayarans',
+            'view-tagihan-bulanans',
+            'view-pembayarans',
+            'cetak-tagihan',
+            'view-laporan-keuangan',
+            'download-laporan-keuangan',
+        ])->pluck('id');
+
+        $pegawaiStaffPermissions = $penggunaPermissions
+            ->merge($penjadwalanPermissions)
+            ->merge($akademikPermissions)
+            ->unique()
+            ->values();
+
         $superAdminRole->permissions()->sync(Permission::all()->pluck('id')->all());
         $adminSistemRole->permissions()->sync(
             $manajemenAksesPermissions
@@ -136,15 +186,15 @@ class RolePermissionSeeder extends Seeder
                 ->all()
         );
         $pegawaiRole->permissions()->sync(
-            $penggunaPermissions
-                ->merge($penjadwalanPermissions)
-                ->merge($akademikPermissions)
+            $pegawaiStaffPermissions
+                ->merge($keuanganFullPermissions)
                 ->unique()
                 ->values()
                 ->all()
         );
+        $pegawaiLainnyaRole->permissions()->sync($pegawaiStaffPermissions->all());
         $guruRole->permissions()->sync($akademikPermissions->values()->all());
-        $pimpinanRole->permissions()->sync([]);
+        $pimpinanRole->permissions()->sync($keuanganViewPermissions->values()->all());
         $siswaRole->permissions()->sync($siswaAkademikPermissions->values()->all());
 
         $superAdmin = User::firstOrCreate(
@@ -188,7 +238,14 @@ class RolePermissionSeeder extends Seeder
             if (Guru::where('user_id', $pegawai->user_id)->exists()) {
                 continue;
             }
-            $pegawai->user->roles()->sync([$pegawaiRole->id]);
+
+            $roleId = ($pegawai->jenis_pegawai ?? 'lainnya') === 'tu'
+                ? $pegawaiRole->id
+                : $pegawaiLainnyaRole->id;
+
+            $pegawai->user->roles()->sync([$roleId]);
         }
+
+        $this->call(JenisPembayaranSeeder::class);
     }
 }

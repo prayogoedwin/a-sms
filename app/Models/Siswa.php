@@ -32,4 +32,19 @@ class Siswa extends Model
     {
         return $this->hasMany(AbsensiSiswa::class);
     }
+
+    public function jenisPembayarans(): HasMany
+    {
+        return $this->hasMany(SiswaJenisPembayaran::class);
+    }
+
+    public function tagihanBulanans(): HasMany
+    {
+        return $this->hasMany(TagihanBulanan::class);
+    }
+
+    public function pembayarans(): HasMany
+    {
+        return $this->hasMany(Pembayaran::class);
+    }
 }

@@ -15,6 +15,7 @@
             <thead>
                 <tr class="text-left border-b border-gray-200 dark:border-gray-700">
                     <th class="py-2 pr-4">Nama</th>
+                    <th class="py-2 pr-4">Jenis</th>
                     <th class="py-2 pr-4">NIP</th>
                     <th class="py-2 pr-4">Email</th>
                     <th class="py-2 pr-4 text-right">Aksi</th>
@@ -24,6 +25,7 @@
                 @foreach($pegawais as $pegawai)
                     <tr class="border-b border-gray-100 dark:border-gray-700">
                         <td class="py-2 pr-4">{{ $pegawai->nama }}</td>
+                        <td class="py-2 pr-4">{{ ($pegawai->jenis_pegawai ?? 'lainnya') === 'tu' ? 'Pegawai TU' : 'Pegawai Lainnya' }}</td>
                         <td class="py-2 pr-4">{{ $pegawai->nip ?: '-' }}</td>
                         <td class="py-2 pr-4">{{ $pegawai->user->email }}</td>
                         <td class="py-2 pr-4 text-right whitespace-nowrap">

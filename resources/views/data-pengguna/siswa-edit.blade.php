@@ -21,6 +21,9 @@
             </div>
             <div class="flex gap-2">
                 <x-button type="primary">Update</x-button>
+                @if(auth()->user()->hasPermission('edit-jenis-pembayarans'))
+                    <a href="{{ route('keuangan.assign-jenis-pembayaran.edit', $siswa) }}"><x-button type="secondary">Assign Pembayaran</x-button></a>
+                @endif
                 <a href="{{ route('data-pengguna.siswa.index') }}"><x-button type="secondary">Batal</x-button></a>
             </div>
         </form>

@@ -32,6 +32,9 @@
                             @if(auth()->user()->hasPermission('edit-siswas'))
                                 <a href="{{ route('data-pengguna.siswa.edit', $siswa) }}" class="text-blue-600 dark:text-blue-400 hover:underline mr-3">Edit</a>
                             @endif
+                            @if(auth()->user()->hasPermission('edit-jenis-pembayarans'))
+                                <a href="{{ route('keuangan.assign-jenis-pembayaran.edit', $siswa) }}" class="text-green-600 dark:text-green-400 hover:underline mr-3">Assign</a>
+                            @endif
                             @if(auth()->user()->hasPermission('delete-siswas'))
                                 <form method="POST" action="{{ route('data-pengguna.siswa.destroy', $siswa) }}" class="inline" onsubmit="return confirm('Hapus data siswa ini?')">
                                     @csrf

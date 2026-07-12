@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\KeuanganController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\AkademikController;
@@ -245,6 +246,91 @@ Route::middleware(['auth'])->group(function () {
     Route::get('akademik/siswa/absensi', [AkademikController::class, 'absensiSiswa'])
         ->name('akademik.siswa.absensi')
         ->middleware('permission:view-absensi-siswa');
+
+    // Keuangan
+    Route::get('keuangan/jenis-pembayaran', [KeuanganController::class, 'jenisPembayaranIndex'])
+        ->name('keuangan.jenis-pembayaran.index')
+        ->middleware('permission:view-jenis-pembayarans');
+    Route::get('keuangan/jenis-pembayaran/create', [KeuanganController::class, 'jenisPembayaranCreate'])
+        ->name('keuangan.jenis-pembayaran.create')
+        ->middleware('permission:create-jenis-pembayarans');
+    Route::post('keuangan/jenis-pembayaran', [KeuanganController::class, 'storeJenisPembayaran'])
+        ->name('keuangan.jenis-pembayaran.store')
+        ->middleware('permission:create-jenis-pembayarans');
+    Route::get('keuangan/jenis-pembayaran/{jenisPembayaran}/edit', [KeuanganController::class, 'jenisPembayaranEdit'])
+        ->name('keuangan.jenis-pembayaran.edit')
+        ->middleware('permission:edit-jenis-pembayarans');
+    Route::put('keuangan/jenis-pembayaran/{jenisPembayaran}', [KeuanganController::class, 'jenisPembayaranUpdate'])
+        ->name('keuangan.jenis-pembayaran.update')
+        ->middleware('permission:edit-jenis-pembayarans');
+    Route::delete('keuangan/jenis-pembayaran/{jenisPembayaran}', [KeuanganController::class, 'jenisPembayaranDestroy'])
+        ->name('keuangan.jenis-pembayaran.destroy')
+        ->middleware('permission:delete-jenis-pembayarans');
+
+    Route::get('keuangan/tarif-pembayaran', [KeuanganController::class, 'tarifPembayaranIndex'])
+        ->name('keuangan.tarif-pembayaran.index')
+        ->middleware('permission:view-tarif-pembayarans');
+    Route::get('keuangan/tarif-pembayaran/create', [KeuanganController::class, 'tarifPembayaranCreate'])
+        ->name('keuangan.tarif-pembayaran.create')
+        ->middleware('permission:create-tarif-pembayarans');
+    Route::post('keuangan/tarif-pembayaran', [KeuanganController::class, 'storeTarifPembayaran'])
+        ->name('keuangan.tarif-pembayaran.store')
+        ->middleware('permission:create-tarif-pembayarans');
+    Route::get('keuangan/tarif-pembayaran/{tarifPembayaran}/edit', [KeuanganController::class, 'tarifPembayaranEdit'])
+        ->name('keuangan.tarif-pembayaran.edit')
+        ->middleware('permission:edit-tarif-pembayarans');
+    Route::put('keuangan/tarif-pembayaran/{tarifPembayaran}', [KeuanganController::class, 'tarifPembayaranUpdate'])
+        ->name('keuangan.tarif-pembayaran.update')
+        ->middleware('permission:edit-tarif-pembayarans');
+    Route::delete('keuangan/tarif-pembayaran/{tarifPembayaran}', [KeuanganController::class, 'tarifPembayaranDestroy'])
+        ->name('keuangan.tarif-pembayaran.destroy')
+        ->middleware('permission:delete-tarif-pembayarans');
+
+    Route::get('keuangan/tagihan-bulanan', [KeuanganController::class, 'tagihanBulananIndex'])
+        ->name('keuangan.tagihan-bulanan.index')
+        ->middleware('permission:view-tagihan-bulanans');
+    Route::get('keuangan/tagihan-bulanan/generate', [KeuanganController::class, 'tagihanBulananGenerateForm'])
+        ->name('keuangan.tagihan-bulanan.generate-form')
+        ->middleware('permission:create-tagihan-bulanans');
+    Route::post('keuangan/tagihan-bulanan/generate', [KeuanganController::class, 'tagihanBulananGenerate'])
+        ->name('keuangan.tagihan-bulanan.generate')
+        ->middleware('permission:create-tagihan-bulanans');
+    Route::get('keuangan/tagihan-bulanan/{tagihanBulanan}', [KeuanganController::class, 'tagihanBulananShow'])
+        ->name('keuangan.tagihan-bulanan.show')
+        ->middleware('permission:view-tagihan-bulanans');
+    Route::get('keuangan/tagihan-bulanan/{tagihanBulanan}/cetak', [KeuanganController::class, 'cetakTagihan'])
+        ->name('keuangan.tagihan-bulanan.cetak')
+        ->middleware('permission:cetak-tagihan');
+    Route::get('keuangan/tagihan-bulanan/{tagihanBulanan}/cetak/{detail}', [KeuanganController::class, 'cetakTagihanItem'])
+        ->name('keuangan.tagihan-bulanan.cetak-item')
+        ->middleware('permission:cetak-tagihan');
+
+    Route::get('keuangan/pembayaran', [KeuanganController::class, 'pembayaranIndex'])
+        ->name('keuangan.pembayaran.index')
+        ->middleware('permission:view-pembayarans');
+    Route::get('keuangan/pembayaran/create', [KeuanganController::class, 'pembayaranCreate'])
+        ->name('keuangan.pembayaran.create')
+        ->middleware('permission:input-pembayaran');
+    Route::post('keuangan/pembayaran', [KeuanganController::class, 'storePembayaran'])
+        ->name('keuangan.pembayaran.store')
+        ->middleware('permission:input-pembayaran');
+
+    Route::get('keuangan/laporan', [KeuanganController::class, 'laporanIndex'])
+        ->name('keuangan.laporan.index')
+        ->middleware('permission:view-laporan-keuangan');
+    Route::get('keuangan/laporan/export', [KeuanganController::class, 'laporanExport'])
+        ->name('keuangan.laporan.export')
+        ->middleware('permission:download-laporan-keuangan');
+
+    Route::get('keuangan/assign-jenis-pembayaran', [KeuanganController::class, 'assignJenisPembayaranIndex'])
+        ->name('keuangan.assign-jenis-pembayaran.index')
+        ->middleware('permission:view-jenis-pembayarans');
+    Route::get('keuangan/assign-jenis-pembayaran/{siswa}', [KeuanganController::class, 'assignJenisPembayaranEdit'])
+        ->name('keuangan.assign-jenis-pembayaran.edit')
+        ->middleware('permission:view-jenis-pembayarans');
+    Route::put('keuangan/assign-jenis-pembayaran/{siswa}', [KeuanganController::class, 'assignJenisPembayaranUpdate'])
+        ->name('keuangan.assign-jenis-pembayaran.update')
+        ->middleware('permission:edit-jenis-pembayarans');
 });
 
 require __DIR__.'/auth.php';

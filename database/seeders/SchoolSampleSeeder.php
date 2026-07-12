@@ -30,6 +30,8 @@ class SchoolSampleSeeder extends Seeder
             $this->seedSiswa($kelasMap);
             $this->seedJadwal($kelasMap, $mapelMap, $guruMap);
         });
+
+        $this->call(TarifPembayaranSeeder::class);
     }
 
     private function seedTingkat(): array

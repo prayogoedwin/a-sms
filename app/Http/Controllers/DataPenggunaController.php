@@ -58,6 +58,7 @@ class DataPenggunaController extends Controller
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'confirmed', Password::defaults()],
             'nama' => ['required', 'string', 'max:255'],
+            'jenis_pegawai' => ['required', 'in:tu,lainnya'],
             'nip' => ['nullable', 'string', 'max:50', 'unique:pegawais,nip'],
             'telepon' => ['nullable', 'string', 'max:30'],
             'alamat' => ['nullable', 'string'],
@@ -70,11 +71,13 @@ class DataPenggunaController extends Controller
                 'password' => Hash::make($validated['password']),
             ]);
 
-            $user->assignRole($this->getOrCreateRole('pegawai'));
+            $roleName = $validated['jenis_pegawai'] === 'tu' ? 'pegawai' : 'pegawai-lainnya';
+            $user->assignRole($this->getOrCreateRole($roleName));
 
             Pegawai::create([
                 'user_id' => $user->id,
                 'nama' => $validated['nama'],
+                'jenis_pegawai' => $validated['jenis_pegawai'],
                 'nip' => $validated['nip'] ?? null,
                 'telepon' => $validated['telepon'] ?? null,
                 'alamat' => $validated['alamat'] ?? null,
@@ -157,6 +160,7 @@ class DataPenggunaController extends Controller
             'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $pegawai->user_id],
             'password' => ['nullable', 'confirmed', Password::defaults()],
             'nama' => ['required', 'string', 'max:255'],
+            'jenis_pegawai' => ['required', 'in:tu,lainnya'],
             'nip' => ['nullable', 'string', 'max:50', 'unique:pegawais,nip,' . $pegawai->id],
             'telepon' => ['nullable', 'string', 'max:30'],
             'alamat' => ['nullable', 'string'],
@@ -172,8 +176,12 @@ class DataPenggunaController extends Controller
                 $pegawai->user->update(['password' => Hash::make($validated['password'])]);
             }
 
+            $roleName = $validated['jenis_pegawai'] === 'tu' ? 'pegawai' : 'pegawai-lainnya';
+            $pegawai->user->roles()->sync([$this->getOrCreateRole($roleName)->id]);
+
             $pegawai->update([
                 'nama' => $validated['nama'],
+                'jenis_pegawai' => $validated['jenis_pegawai'],
                 'nip' => $validated['nip'] ?? null,
                 'telepon' => $validated['telepon'] ?? null,
                 'alamat' => $validated['alamat'] ?? null,

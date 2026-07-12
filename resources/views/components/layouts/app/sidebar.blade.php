@@ -110,6 +110,39 @@
                                     @endif
                                 </x-layouts.sidebar-two-level-link-parent>
                             @endif
+
+                            @php
+                                $keuanganAccess = auth()->user()->hasPermission('view-tagihan-bulanans')
+                                    || auth()->user()->hasPermission('view-jenis-pembayarans')
+                                    || auth()->user()->hasPermission('view-laporan-keuangan');
+                            @endphp
+                            @if($keuanganAccess)
+                                <x-layouts.sidebar-two-level-link-parent title="Keuangan" icon="fas-coins"
+                                    :active="request()->routeIs('keuangan*')">
+                                    @if(auth()->user()->hasPermission('view-jenis-pembayarans'))
+                                        <x-layouts.sidebar-two-level-link href="{{ route('keuangan.jenis-pembayaran.index') }}" icon='fas-list'
+                                            :active="request()->routeIs('keuangan.jenis-pembayaran*')">Jenis Pembayaran</x-layouts.sidebar-two-level-link>
+                                        <x-layouts.sidebar-two-level-link href="{{ route('keuangan.assign-jenis-pembayaran.index') }}" icon='fas-user-check'
+                                            :active="request()->routeIs('keuangan.assign-jenis-pembayaran*')">Assign Siswa</x-layouts.sidebar-two-level-link>
+                                    @endif
+                                    @if(auth()->user()->hasPermission('view-tarif-pembayarans'))
+                                        <x-layouts.sidebar-two-level-link href="{{ route('keuangan.tarif-pembayaran.index') }}" icon='fas-tags'
+                                            :active="request()->routeIs('keuangan.tarif-pembayaran*')">Tarif Pembayaran</x-layouts.sidebar-two-level-link>
+                                    @endif
+                                    @if(auth()->user()->hasPermission('view-tagihan-bulanans'))
+                                        <x-layouts.sidebar-two-level-link href="{{ route('keuangan.tagihan-bulanan.index') }}" icon='fas-file-invoice'
+                                            :active="request()->routeIs('keuangan.tagihan-bulanan*')">Tagihan Bulanan</x-layouts.sidebar-two-level-link>
+                                    @endif
+                                    @if(auth()->user()->hasPermission('view-pembayarans'))
+                                        <x-layouts.sidebar-two-level-link href="{{ route('keuangan.pembayaran.index') }}" icon='fas-money-bill-wave'
+                                            :active="request()->routeIs('keuangan.pembayaran*')">Pembayaran</x-layouts.sidebar-two-level-link>
+                                    @endif
+                                    @if(auth()->user()->hasPermission('view-laporan-keuangan'))
+                                        <x-layouts.sidebar-two-level-link href="{{ route('keuangan.laporan.index') }}" icon='fas-chart-pie'
+                                            :active="request()->routeIs('keuangan.laporan*')">Laporan</x-layouts.sidebar-two-level-link>
+                                    @endif
+                                </x-layouts.sidebar-two-level-link-parent>
+                            @endif
                         </ul>
                     </nav>
                 </div>

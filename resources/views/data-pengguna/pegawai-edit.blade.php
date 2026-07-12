@@ -12,6 +12,13 @@
             <x-forms.input label="Password (opsional)" name="password" type="password" />
             <x-forms.input label="Konfirmasi Password" name="password_confirmation" type="password" />
             <x-forms.input label="Nama Pegawai" name="nama" value="{{ old('nama', $pegawai->nama) }}" required />
+            <div>
+                <label class="block ml-1 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Jenis Pegawai</label>
+                <select name="jenis_pegawai" class="w-full px-4 py-1.5 rounded-lg text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600" required>
+                    <option value="tu" @selected(old('jenis_pegawai', $pegawai->jenis_pegawai) === 'tu')>Pegawai TU (akses keuangan)</option>
+                    <option value="lainnya" @selected(old('jenis_pegawai', $pegawai->jenis_pegawai ?? 'lainnya') === 'lainnya')>Pegawai Lainnya</option>
+                </select>
+            </div>
             <x-forms.input label="NIP" name="nip" value="{{ old('nip', $pegawai->nip) }}" />
             <x-forms.input label="Telepon" name="telepon" value="{{ old('telepon', $pegawai->telepon) }}" />
             <div>
