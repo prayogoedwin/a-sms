@@ -4,15 +4,20 @@
 
     <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 max-w-3xl mb-6">
         <form method="GET" class="flex flex-wrap gap-3 items-end">
-            <div class="flex-1 min-w-[200px]">
-                <label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">Pilih Siswa</label>
-                <select name="siswa_id" class="w-full px-4 py-1.5 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600" required onchange="this.form.submit()">
-                    <option value="">— Pilih siswa —</option>
-                    @foreach($siswas as $s)
-                        <option value="{{ $s->id }}" @selected(request('siswa_id') == $s->id)>{{ $s->nama }} {{ $s->kelas ? '(' . $s->kelas->tingkat->nama . ' ' . $s->kelas->nama_kelas . ')' : '' }}</option>
-                    @endforeach
-                </select>
-            </div>
+            <x-forms.select-search
+                name="siswa_id"
+                label="Pilih Siswa"
+                placeholder="Cari nama, NIS, atau kelas..."
+                :submit-on-change="true"
+                class="flex-1 min-w-[280px]"
+            >
+                <option value="">— Pilih siswa —</option>
+                @foreach($siswas as $s)
+                    <option value="{{ $s->id }}" @selected(request('siswa_id') == $s->id)>
+                        {{ $s->nama }}{{ $s->nis ? ' · NIS ' . $s->nis : '' }}{{ $s->kelas ? ' · ' . $s->kelas->tingkat->nama . ' ' . $s->kelas->nama_kelas : '' }}
+                    </option>
+                @endforeach
+            </x-forms.select-search>
         </form>
     </div>
 
