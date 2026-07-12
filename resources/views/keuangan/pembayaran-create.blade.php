@@ -2,7 +2,7 @@
 <x-layouts.app>
     <div class="mb-6"><h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100">Input Pembayaran</h1></div>
 
-    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 max-w-3xl mb-6">
+    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 max-w-3xl mb-6 overflow-visible">
         <form method="GET" class="flex flex-wrap gap-3 items-end">
             <x-forms.select-search
                 name="siswa_id"
