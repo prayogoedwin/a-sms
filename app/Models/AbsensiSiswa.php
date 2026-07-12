@@ -12,6 +12,13 @@ class AbsensiSiswa extends Model
 
     protected $fillable = ['jadwal_id', 'siswa_id', 'tanggal', 'status', 'keterangan', 'diinput_oleh_guru_id'];
 
+    protected function casts(): array
+    {
+        return [
+            'tanggal' => 'date',
+        ];
+    }
+
     public function jadwal(): BelongsTo
     {
         return $this->belongsTo(Jadwal::class);
