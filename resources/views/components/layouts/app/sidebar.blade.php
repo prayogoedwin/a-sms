@@ -26,7 +26,7 @@
                                 </x-layouts.sidebar-two-level-link-parent>
                             @endif
 
-                            @if(auth()->user()->hasPermission('view-pegawais') || auth()->user()->hasPermission('view-gurus') || auth()->user()->hasPermission('view-siswas'))
+                            @if(auth()->user()->hasPermission('view-pegawais') || auth()->user()->hasPermission('view-gurus') || auth()->user()->hasPermission('view-siswas') || auth()->user()->hasPermission('view-orang-tuas'))
                                 <x-layouts.sidebar-two-level-link-parent title="Pengguna" icon="fas-users"
                                     :active="request()->routeIs('data-pengguna*')">
                                     @if(auth()->user()->hasPermission('view-pegawais'))
@@ -40,6 +40,10 @@
                                     @if(auth()->user()->hasPermission('view-siswas'))
                                         <x-layouts.sidebar-two-level-link href="{{ route('data-pengguna.siswa.index') }}" icon='fas-user-graduate'
                                             :active="request()->routeIs('data-pengguna.siswa*')">Siswa</x-layouts.sidebar-two-level-link>
+                                    @endif
+                                    @if(auth()->user()->hasPermission('view-orang-tuas'))
+                                        <x-layouts.sidebar-two-level-link href="{{ route('data-pengguna.orang-tua.index') }}" icon='fas-people-roof'
+                                            :active="request()->routeIs('data-pengguna.orang-tua*')">Orang Tua</x-layouts.sidebar-two-level-link>
                                     @endif
                                 </x-layouts.sidebar-two-level-link-parent>
                             @endif
@@ -137,9 +141,51 @@
                                         <x-layouts.sidebar-two-level-link href="{{ route('keuangan.pembayaran.index') }}" icon='fas-money-bill-wave'
                                             :active="request()->routeIs('keuangan.pembayaran*')">Pembayaran</x-layouts.sidebar-two-level-link>
                                     @endif
+                                    @if(auth()->user()->hasPermission('view-pengajuan-pembayaran'))
+                                        <x-layouts.sidebar-two-level-link href="{{ route('keuangan.verifikasi-pengajuan.index') }}" icon='fas-clipboard-check'
+                                            :active="request()->routeIs('keuangan.verifikasi-pengajuan*')">Verifikasi Pengajuan</x-layouts.sidebar-two-level-link>
+                                    @endif
                                     @if(auth()->user()->hasPermission('view-laporan-keuangan'))
                                         <x-layouts.sidebar-two-level-link href="{{ route('keuangan.laporan.index') }}" icon='fas-chart-pie'
                                             :active="request()->routeIs('keuangan.laporan*')">Laporan</x-layouts.sidebar-two-level-link>
+                                    @endif
+                                </x-layouts.sidebar-two-level-link-parent>
+                            @endif
+
+                            @php
+                                $portalAccess = auth()->user()->hasPermission('view-profil-anak')
+                                    || auth()->user()->hasPermission('view-tagihan-anak');
+                            @endphp
+                            @if($portalAccess)
+                                <x-layouts.sidebar-two-level-link-parent title="Portal Orang Tua" icon="fas-house-user"
+                                    :active="request()->routeIs('portal*')">
+                                    @if(auth()->user()->hasPermission('view-profil-anak'))
+                                        <x-layouts.sidebar-two-level-link href="{{ route('portal.profil') }}" icon='fas-id-card'
+                                            :active="request()->routeIs('portal.profil')">Profil Anak</x-layouts.sidebar-two-level-link>
+                                    @endif
+                                    @if(auth()->user()->hasPermission('view-jadwal-anak'))
+                                        <x-layouts.sidebar-two-level-link href="{{ route('portal.jadwal') }}" icon='fas-calendar'
+                                            :active="request()->routeIs('portal.jadwal')">Jadwal</x-layouts.sidebar-two-level-link>
+                                    @endif
+                                    @if(auth()->user()->hasPermission('view-nilai-anak'))
+                                        <x-layouts.sidebar-two-level-link href="{{ route('portal.nilai') }}" icon='fas-star'
+                                            :active="request()->routeIs('portal.nilai')">Nilai</x-layouts.sidebar-two-level-link>
+                                    @endif
+                                    @if(auth()->user()->hasPermission('view-absensi-anak'))
+                                        <x-layouts.sidebar-two-level-link href="{{ route('portal.absensi') }}" icon='fas-user-check'
+                                            :active="request()->routeIs('portal.absensi')">Absensi</x-layouts.sidebar-two-level-link>
+                                    @endif
+                                    @if(auth()->user()->hasPermission('view-tagihan-anak'))
+                                        <x-layouts.sidebar-two-level-link href="{{ route('portal.tagihan') }}" icon='fas-file-invoice'
+                                            :active="request()->routeIs('portal.tagihan')">Tagihan</x-layouts.sidebar-two-level-link>
+                                    @endif
+                                    @if(auth()->user()->hasPermission('view-pembayaran-anak'))
+                                        <x-layouts.sidebar-two-level-link href="{{ route('portal.pembayaran') }}" icon='fas-money-bill'
+                                            :active="request()->routeIs('portal.pembayaran')">Pembayaran</x-layouts.sidebar-two-level-link>
+                                    @endif
+                                    @if(auth()->user()->hasPermission('view-pengajuan-sendiri'))
+                                        <x-layouts.sidebar-two-level-link href="{{ route('portal.pengajuan.index') }}" icon='fas-paper-plane'
+                                            :active="request()->routeIs('portal.pengajuan*')">Pengajuan Bayar</x-layouts.sidebar-two-level-link>
                                     @endif
                                 </x-layouts.sidebar-two-level-link-parent>
                             @endif

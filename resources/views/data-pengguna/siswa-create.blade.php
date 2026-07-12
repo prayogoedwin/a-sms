@@ -1,6 +1,6 @@
 <x-layouts.app>
     <div class="mb-6"><h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100">Tambah Siswa</h1></div>
-    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 max-w-2xl">
+    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 max-w-3xl">
         <form method="POST" action="{{ route('data-pengguna.siswa.store') }}" class="space-y-3">
             @csrf
             <x-forms.input label="Nama User" name="name" value="{{ old('name') }}" required />
@@ -18,7 +18,8 @@
                     @endforeach
                 </select>
             </div>
-            <div class="flex gap-2">
+            @include('data-pengguna.partials.siswa-biodata')
+            <div class="flex gap-2 pt-2">
                 <x-button type="primary">Simpan</x-button>
                 <a href="{{ route('data-pengguna.siswa.index') }}"><x-button type="secondary">Batal</x-button></a>
             </div>

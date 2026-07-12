@@ -194,6 +194,11 @@ class KeuanganService
         return 'Rp ' . number_format((float) $amount, 0, ',', '.');
     }
 
+    public function labelBulan(int $bulan): string
+    {
+        return self::BULAN_NAMA[$bulan] ?? (string) $bulan;
+    }
+
     public function labelStatus(string $status): string
     {
         return match ($status) {

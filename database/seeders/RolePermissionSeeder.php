@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Guru;
+use App\Models\OrangTua;
 use App\Models\Pegawai;
 use App\Models\Permission;
 use App\Models\Role;
@@ -90,6 +91,21 @@ class RolePermissionSeeder extends Seeder
             'cetak-tagihan',
             'view-laporan-keuangan',
             'download-laporan-keuangan',
+            'view-orang-tuas',
+            'create-orang-tuas',
+            'edit-orang-tuas',
+            'delete-orang-tuas',
+            'view-profil-anak',
+            'view-jadwal-anak',
+            'view-nilai-anak',
+            'view-absensi-anak',
+            'view-tagihan-anak',
+            'view-pembayaran-anak',
+            'cetak-tagihan-anak',
+            'ajukan-pembayaran',
+            'view-pengajuan-sendiri',
+            'view-pengajuan-pembayaran',
+            'verifikasi-pembayaran',
         ];
 
         foreach ($permissions as $permissionName) {
@@ -103,6 +119,7 @@ class RolePermissionSeeder extends Seeder
         $pegawaiLainnyaRole = Role::firstOrCreate(['name' => 'pegawai-lainnya']);
         $guruRole = Role::firstOrCreate(['name' => 'guru']);
         $siswaRole = Role::firstOrCreate(['name' => 'siswa']);
+        $orangTuaRole = Role::firstOrCreate(['name' => 'orang-tua']);
 
         // Hapus role lama yang tidak dipakai lagi.
         Role::whereIn('name', ['admin', 'editor', 'user'])->get()->each->delete();
@@ -117,6 +134,7 @@ class RolePermissionSeeder extends Seeder
             'view-pegawais', 'create-pegawais', 'edit-pegawais', 'delete-pegawais',
             'view-gurus', 'create-gurus', 'edit-gurus', 'delete-gurus',
             'view-siswas', 'create-siswas', 'edit-siswas', 'delete-siswas',
+            'view-orang-tuas', 'create-orang-tuas', 'edit-orang-tuas', 'delete-orang-tuas',
         ])->pluck('id');
 
         $penjadwalanPermissions = Permission::whereIn('name', [
@@ -157,6 +175,8 @@ class RolePermissionSeeder extends Seeder
             'cetak-tagihan',
             'view-laporan-keuangan',
             'download-laporan-keuangan',
+            'view-pengajuan-pembayaran',
+            'verifikasi-pembayaran',
         ])->pluck('id');
 
         $keuanganViewPermissions = Permission::whereIn('name', [
@@ -167,6 +187,19 @@ class RolePermissionSeeder extends Seeder
             'cetak-tagihan',
             'view-laporan-keuangan',
             'download-laporan-keuangan',
+            'view-pengajuan-pembayaran',
+        ])->pluck('id');
+
+        $portalOrangTuaPermissions = Permission::whereIn('name', [
+            'view-profil-anak',
+            'view-jadwal-anak',
+            'view-nilai-anak',
+            'view-absensi-anak',
+            'view-tagihan-anak',
+            'view-pembayaran-anak',
+            'cetak-tagihan-anak',
+            'ajukan-pembayaran',
+            'view-pengajuan-sendiri',
         ])->pluck('id');
 
         $pegawaiStaffPermissions = $penggunaPermissions
@@ -196,6 +229,7 @@ class RolePermissionSeeder extends Seeder
         $guruRole->permissions()->sync($akademikPermissions->values()->all());
         $pimpinanRole->permissions()->sync($keuanganViewPermissions->values()->all());
         $siswaRole->permissions()->sync($siswaAkademikPermissions->values()->all());
+        $orangTuaRole->permissions()->sync($portalOrangTuaPermissions->values()->all());
 
         $superAdmin = User::firstOrCreate(
             ['email' => 'superadmin@example.com'],
@@ -244,6 +278,12 @@ class RolePermissionSeeder extends Seeder
                 : $pegawaiLainnyaRole->id;
 
             $pegawai->user->roles()->sync([$roleId]);
+        }
+
+        foreach (OrangTua::query()->with('user')->get() as $orangTua) {
+            if ($orangTua->user) {
+                $orangTua->user->roles()->sync([$orangTuaRole->id]);
+            }
         }
 
         $this->call(JenisPembayaranSeeder::class);

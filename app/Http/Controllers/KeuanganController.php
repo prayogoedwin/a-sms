@@ -7,6 +7,7 @@ use App\Models\JenisPembayaran;
 use App\Models\Kelas;
 use App\Models\Pembayaran;
 use App\Models\PembayaranDetail;
+use App\Models\PengajuanPembayaran;
 use App\Models\Siswa;
 use App\Models\TagihanBulanan;
 use App\Models\TagihanBulananDetail;
@@ -14,6 +15,7 @@ use App\Models\TarifPembayaran;
 use App\Models\TahunAjaran;
 use App\Models\Tingkat;
 use App\Services\KeuanganService;
+use App\Services\PengajuanPembayaranService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -23,7 +25,10 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class KeuanganController extends Controller
 {
-    public function __construct(private KeuanganService $keuangan) {}
+    public function __construct(
+        private KeuanganService $keuangan,
+        private PengajuanPembayaranService $pengajuan
+    ) {}
 
     // --- Jenis Pembayaran ---
 
@@ -459,5 +464,59 @@ class KeuanganController extends Controller
             new LaporanKeuanganExport($filters),
             'laporan-keuangan-' . date('Y-m-d') . '.xlsx'
         );
+    }
+
+    // --- Verifikasi Pengajuan Pembayaran ---
+
+    public function verifikasiPengajuanIndex(): View
+    {
+        $pengajuans = PengajuanPembayaran::with(['siswa.kelas', 'orangTua'])
+            ->orderByRaw("FIELD(status, 'menunggu', 'disetujui', 'ditolak')")
+            ->orderByDesc('created_at')
+            ->get();
+
+        return view('keuangan.verifikasi-pengajuan', [
+            'pengajuans' => $pengajuans,
+            'pengajuanService' => $this->pengajuan,
+        ]);
+    }
+
+    public function verifikasiPengajuanShow(PengajuanPembayaran $pengajuan): View
+    {
+        $pengajuan->load(['siswa.kelas', 'orangTua.user', 'details.tagihanBulananDetail.jenisPembayaran', 'details.tagihanBulananDetail.tagihanBulanan', 'diverifikasiOleh']);
+
+        return view('keuangan.verifikasi-pengajuan-show', [
+            'pengajuan' => $pengajuan,
+            'ks' => $this->keuangan,
+            'pengajuanService' => $this->pengajuan,
+        ]);
+    }
+
+    public function verifikasiPengajuanApprove(PengajuanPembayaran $pengajuan): RedirectResponse
+    {
+        try {
+            $this->pengajuan->approve($pengajuan, auth()->user());
+        } catch (\InvalidArgumentException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return to_route('keuangan.verifikasi-pengajuan.show', $pengajuan)
+            ->with('status', 'Pengajuan pembayaran berhasil disetujui.');
+    }
+
+    public function verifikasiPengajuanReject(Request $request, PengajuanPembayaran $pengajuan): RedirectResponse
+    {
+        $validated = $request->validate([
+            'catatan_admin' => ['required', 'string', 'max:500'],
+        ]);
+
+        try {
+            $this->pengajuan->reject($pengajuan, auth()->user(), $validated['catatan_admin']);
+        } catch (\InvalidArgumentException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return to_route('keuangan.verifikasi-pengajuan.show', $pengajuan)
+            ->with('status', 'Pengajuan pembayaran ditolak.');
     }
 }

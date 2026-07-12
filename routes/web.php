@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\KeuanganController;
 use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\PortalOrangTuaController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\AkademikController;
 use App\Http\Controllers\DataPenggunaController;
@@ -114,6 +115,31 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('data-pengguna/siswa/{siswa}', [DataPenggunaController::class, 'siswaDestroy'])
         ->name('data-pengguna.siswa.destroy')
         ->middleware('permission:delete-siswas');
+    Route::post('data-pengguna/siswa/{siswa}/link-orang-tua', [DataPenggunaController::class, 'siswaLinkOrangTua'])
+        ->name('data-pengguna.siswa.link-orang-tua')
+        ->middleware('permission:edit-siswas');
+    Route::delete('data-pengguna/siswa/{siswa}/unlink-orang-tua/{orangTua}', [DataPenggunaController::class, 'siswaUnlinkOrangTua'])
+        ->name('data-pengguna.siswa.unlink-orang-tua')
+        ->middleware('permission:edit-siswas');
+
+    Route::get('data-pengguna/orang-tua', [DataPenggunaController::class, 'orangTuaIndex'])
+        ->name('data-pengguna.orang-tua.index')
+        ->middleware('permission:view-orang-tuas');
+    Route::get('data-pengguna/orang-tua/create', [DataPenggunaController::class, 'orangTuaCreate'])
+        ->name('data-pengguna.orang-tua.create')
+        ->middleware('permission:create-orang-tuas');
+    Route::post('data-pengguna/orang-tua', [DataPenggunaController::class, 'storeOrangTua'])
+        ->name('data-pengguna.orang-tua.store')
+        ->middleware('permission:create-orang-tuas');
+    Route::get('data-pengguna/orang-tua/{orangTua}/edit', [DataPenggunaController::class, 'orangTuaEdit'])
+        ->name('data-pengguna.orang-tua.edit')
+        ->middleware('permission:edit-orang-tuas');
+    Route::put('data-pengguna/orang-tua/{orangTua}', [DataPenggunaController::class, 'orangTuaUpdate'])
+        ->name('data-pengguna.orang-tua.update')
+        ->middleware('permission:edit-orang-tuas');
+    Route::delete('data-pengguna/orang-tua/{orangTua}', [DataPenggunaController::class, 'orangTuaDestroy'])
+        ->name('data-pengguna.orang-tua.destroy')
+        ->middleware('permission:delete-orang-tuas');
 
     // Master Data Sekolah
     Route::get('master-data/tingkat', [MasterDataController::class, 'tingkatIndex'])
@@ -331,6 +357,32 @@ Route::middleware(['auth'])->group(function () {
     Route::put('keuangan/assign-jenis-pembayaran/{siswa}', [KeuanganController::class, 'assignJenisPembayaranUpdate'])
         ->name('keuangan.assign-jenis-pembayaran.update')
         ->middleware('permission:edit-jenis-pembayarans');
+
+    Route::get('keuangan/verifikasi-pengajuan', [KeuanganController::class, 'verifikasiPengajuanIndex'])
+        ->name('keuangan.verifikasi-pengajuan.index')
+        ->middleware('permission:view-pengajuan-pembayaran');
+    Route::get('keuangan/verifikasi-pengajuan/{pengajuan}', [KeuanganController::class, 'verifikasiPengajuanShow'])
+        ->name('keuangan.verifikasi-pengajuan.show')
+        ->middleware('permission:view-pengajuan-pembayaran');
+    Route::post('keuangan/verifikasi-pengajuan/{pengajuan}/approve', [KeuanganController::class, 'verifikasiPengajuanApprove'])
+        ->name('keuangan.verifikasi-pengajuan.approve')
+        ->middleware('permission:verifikasi-pembayaran');
+    Route::post('keuangan/verifikasi-pengajuan/{pengajuan}/reject', [KeuanganController::class, 'verifikasiPengajuanReject'])
+        ->name('keuangan.verifikasi-pengajuan.reject')
+        ->middleware('permission:verifikasi-pembayaran');
+
+    // Portal Orang Tua
+    Route::prefix('portal')->name('portal.')->group(function () {
+        Route::get('profil', [PortalOrangTuaController::class, 'profil'])->name('profil');
+        Route::get('jadwal', [PortalOrangTuaController::class, 'jadwal'])->name('jadwal');
+        Route::get('nilai', [PortalOrangTuaController::class, 'nilai'])->name('nilai');
+        Route::get('absensi', [PortalOrangTuaController::class, 'absensi'])->name('absensi');
+        Route::get('tagihan', [PortalOrangTuaController::class, 'tagihan'])->name('tagihan');
+        Route::get('pembayaran', [PortalOrangTuaController::class, 'pembayaran'])->name('pembayaran');
+        Route::get('pengajuan', [PortalOrangTuaController::class, 'pengajuanIndex'])->name('pengajuan.index');
+        Route::get('pengajuan/create', [PortalOrangTuaController::class, 'pengajuanCreate'])->name('pengajuan.create');
+        Route::post('pengajuan', [PortalOrangTuaController::class, 'pengajuanStore'])->name('pengajuan.store');
+    });
 });
 
 require __DIR__.'/auth.php';

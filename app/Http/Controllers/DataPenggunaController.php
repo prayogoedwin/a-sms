@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Guru;
 use App\Models\Kelas;
+use App\Models\OrangTua;
 use App\Models\Pegawai;
 use App\Models\Role;
 use App\Models\Siswa;
 use App\Models\User;
+use App\Services\OrangTuaService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -17,6 +19,7 @@ use Illuminate\View\View;
 
 class DataPenggunaController extends Controller
 {
+    public function __construct(private OrangTuaService $orangTuaService) {}
     public function pegawaiIndex(): View
     {
         $pegawais = Pegawai::with('user')->latest()->get();
@@ -125,6 +128,7 @@ class DataPenggunaController extends Controller
             'nama' => ['required', 'string', 'max:255'],
             'nis' => ['nullable', 'string', 'max:50', 'unique:siswas,nis'],
             'kelas_id' => ['nullable', 'exists:kelas,id'],
+            ...$this->siswaBiodataRules(),
         ]);
 
         DB::transaction(function () use ($validated) {
@@ -136,12 +140,15 @@ class DataPenggunaController extends Controller
 
             $user->assignRole($this->getOrCreateRole('siswa'));
 
-            Siswa::create([
-                'user_id' => $user->id,
-                'kelas_id' => $validated['kelas_id'] ?? null,
-                'nama' => $validated['nama'],
-                'nis' => $validated['nis'] ?? null,
-            ]);
+            Siswa::create(array_merge(
+                $this->siswaBiodataPayload($validated),
+                [
+                    'user_id' => $user->id,
+                    'kelas_id' => $validated['kelas_id'] ?? null,
+                    'nama' => $validated['nama'],
+                    'nis' => $validated['nis'] ?? null,
+                ]
+            ));
         });
 
         return to_route('data-pengguna.siswa.index')->with('status', 'Siswa dan user berhasil dibuat.');
@@ -240,9 +247,11 @@ class DataPenggunaController extends Controller
 
     public function siswaEdit(Siswa $siswa): View
     {
-        $siswa->load('user', 'kelas');
+        $siswa->load(['user', 'kelas', 'orangTuas.user']);
         $kelasList = Kelas::with('tingkat')->orderBy('tingkat_id')->orderBy('nama_kelas')->get();
-        return view('data-pengguna.siswa-edit', compact('siswa', 'kelasList'));
+        $orangTuas = OrangTua::with('user')->orderBy('nama')->get();
+
+        return view('data-pengguna.siswa-edit', compact('siswa', 'kelasList', 'orangTuas'));
     }
 
     public function siswaUpdate(Request $request, Siswa $siswa): RedirectResponse
@@ -254,6 +263,7 @@ class DataPenggunaController extends Controller
             'nama' => ['required', 'string', 'max:255'],
             'nis' => ['nullable', 'string', 'max:50', 'unique:siswas,nis,' . $siswa->id],
             'kelas_id' => ['nullable', 'exists:kelas,id'],
+            ...$this->siswaBiodataRules($siswa->id),
         ]);
 
         DB::transaction(function () use ($siswa, $validated) {
@@ -266,11 +276,14 @@ class DataPenggunaController extends Controller
                 $siswa->user->update(['password' => Hash::make($validated['password'])]);
             }
 
-            $siswa->update([
-                'nama' => $validated['nama'],
-                'nis' => $validated['nis'] ?? null,
-                'kelas_id' => $validated['kelas_id'] ?? null,
-            ]);
+            $siswa->update(array_merge(
+                $this->siswaBiodataPayload($validated),
+                [
+                    'nama' => $validated['nama'],
+                    'nis' => $validated['nis'] ?? null,
+                    'kelas_id' => $validated['kelas_id'] ?? null,
+                ]
+            ));
         });
 
         return to_route('data-pengguna.siswa.index')->with('status', 'Data siswa berhasil diperbarui.');
@@ -280,6 +293,255 @@ class DataPenggunaController extends Controller
     {
         $siswa->user()->delete();
         return back()->with('status', 'Data siswa berhasil dihapus.');
+    }
+
+    // --- Orang Tua ---
+
+    public function orangTuaIndex(): View
+    {
+        $orangTuas = OrangTua::with(['user', 'siswas'])->latest()->get();
+        return view('data-pengguna.orang-tua', compact('orangTuas'));
+    }
+
+    public function orangTuaCreate(): View
+    {
+        $siswas = Siswa::with('kelas.tingkat')->orderBy('nama')->get();
+        return view('data-pengguna.orang-tua-create', compact('siswas'));
+    }
+
+    public function storeOrangTua(Request $request): RedirectResponse
+    {
+        $mode = $request->input('mode', 'baru');
+
+        if ($mode === 'existing') {
+            return $this->linkExistingOrangTua($request);
+        }
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'password' => ['required', 'confirmed', Password::defaults()],
+            'nama' => ['required', 'string', 'max:255'],
+            'nik' => ['nullable', 'string', 'max:16'],
+            'telepon' => ['nullable', 'string', 'max:30'],
+            'alamat' => ['nullable', 'string'],
+            'pekerjaan' => ['nullable', 'string', 'max:100'],
+            'siswa_ids' => ['nullable', 'array'],
+            'siswa_ids.*' => ['exists:siswas,id'],
+            'hubungan' => ['nullable', 'in:ayah,ibu,wali'],
+        ]);
+
+        DB::transaction(function () use ($validated, $request) {
+            $user = User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+            ]);
+            $user->assignRole($this->getOrCreateRole('orang-tua'));
+
+            $orangTua = OrangTua::create([
+                'user_id' => $user->id,
+                'nama' => $validated['nama'],
+                'nik' => $validated['nik'] ?? null,
+                'telepon' => $validated['telepon'] ?? null,
+                'alamat' => $validated['alamat'] ?? null,
+                'pekerjaan' => $validated['pekerjaan'] ?? null,
+            ]);
+
+            if (! empty($validated['siswa_ids']) && ! empty($validated['hubungan'])) {
+                foreach ($validated['siswa_ids'] as $siswaId) {
+                    $siswa = Siswa::find($siswaId);
+                    if ($siswa) {
+                        $this->orangTuaService->linkToSiswa($orangTua, $siswa, $validated['hubungan']);
+                    }
+                }
+            }
+        });
+
+        return to_route('data-pengguna.orang-tua.index')->with('status', 'Orang tua dan akun berhasil dibuat.');
+    }
+
+    public function orangTuaEdit(OrangTua $orangTua): View
+    {
+        $orangTua->load(['user', 'siswas.kelas']);
+        $siswas = Siswa::with('kelas.tingkat')->orderBy('nama')->get();
+        return view('data-pengguna.orang-tua-edit', compact('orangTua', 'siswas'));
+    }
+
+    public function orangTuaUpdate(Request $request, OrangTua $orangTua): RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $orangTua->user_id],
+            'password' => ['nullable', 'confirmed', Password::defaults()],
+            'nama' => ['required', 'string', 'max:255'],
+            'nik' => ['nullable', 'string', 'max:16'],
+            'telepon' => ['nullable', 'string', 'max:30'],
+            'alamat' => ['nullable', 'string'],
+            'pekerjaan' => ['nullable', 'string', 'max:100'],
+        ]);
+
+        DB::transaction(function () use ($orangTua, $validated) {
+            $orangTua->user->update([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+            ]);
+            if (! empty($validated['password'])) {
+                $orangTua->user->update(['password' => Hash::make($validated['password'])]);
+            }
+            $orangTua->update([
+                'nama' => $validated['nama'],
+                'nik' => $validated['nik'] ?? null,
+                'telepon' => $validated['telepon'] ?? null,
+                'alamat' => $validated['alamat'] ?? null,
+                'pekerjaan' => $validated['pekerjaan'] ?? null,
+            ]);
+        });
+
+        return to_route('data-pengguna.orang-tua.index')->with('status', 'Data orang tua berhasil diperbarui.');
+    }
+
+    public function orangTuaDestroy(OrangTua $orangTua): RedirectResponse
+    {
+        foreach ($orangTua->siswas as $siswa) {
+            $this->orangTuaService->unlinkFromSiswa($orangTua, $siswa);
+        }
+        $orangTua->user()->delete();
+        return back()->with('status', 'Data orang tua berhasil dihapus.');
+    }
+
+    public function siswaLinkOrangTua(Request $request, Siswa $siswa): RedirectResponse
+    {
+        $mode = $request->input('mode', 'existing');
+
+        if ($mode === 'baru') {
+            $validated = $request->validate([
+                'name' => ['required', 'string', 'max:255'],
+                'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+                'password' => ['required', 'confirmed', Password::defaults()],
+                'nama' => ['required', 'string', 'max:255'],
+                'telepon' => ['nullable', 'string', 'max:30'],
+                'hubungan' => ['required', 'in:ayah,ibu,wali'],
+                'is_penanggung_jawab' => ['nullable', 'boolean'],
+            ]);
+
+            $penanggungJawab = $request->boolean('is_penanggung_jawab');
+
+            DB::transaction(function () use ($validated, $siswa, $penanggungJawab) {
+                $user = User::create([
+                    'name' => $validated['name'],
+                    'email' => $validated['email'],
+                    'password' => Hash::make($validated['password']),
+                ]);
+                $user->assignRole($this->getOrCreateRole('orang-tua'));
+
+                $orangTua = OrangTua::create([
+                    'user_id' => $user->id,
+                    'nama' => $validated['nama'],
+                    'telepon' => $validated['telepon'] ?? null,
+                ]);
+
+                $this->orangTuaService->linkToSiswa(
+                    $orangTua,
+                    $siswa,
+                    $validated['hubungan'],
+                    $penanggungJawab
+                );
+            });
+        } else {
+            $validated = $request->validate([
+                'orang_tua_id' => ['required', 'exists:orang_tuas,id'],
+                'hubungan' => ['required', 'in:ayah,ibu,wali'],
+                'is_penanggung_jawab' => ['nullable', 'boolean'],
+            ]);
+
+            $orangTua = OrangTua::findOrFail($validated['orang_tua_id']);
+
+            try {
+                $this->orangTuaService->linkToSiswa(
+                    $orangTua,
+                    $siswa,
+                    $validated['hubungan'],
+                    $request->boolean('is_penanggung_jawab')
+                );
+            } catch (\InvalidArgumentException $e) {
+                return back()->with('error', $e->getMessage());
+            }
+        }
+
+        return back()->with('status', 'Orang tua berhasil dihubungkan ke siswa.');
+    }
+
+    public function siswaUnlinkOrangTua(Siswa $siswa, OrangTua $orangTua): RedirectResponse
+    {
+        $this->orangTuaService->unlinkFromSiswa($orangTua, $siswa);
+        return back()->with('status', 'Orang tua berhasil dilepas dari siswa.');
+    }
+
+    private function linkExistingOrangTua(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'orang_tua_id' => ['required', 'exists:orang_tuas,id'],
+            'siswa_ids' => ['required', 'array', 'min:1'],
+            'siswa_ids.*' => ['exists:siswas,id'],
+            'hubungan' => ['required', 'in:ayah,ibu,wali'],
+        ]);
+
+        $orangTua = OrangTua::findOrFail($validated['orang_tua_id']);
+
+        foreach ($validated['siswa_ids'] as $siswaId) {
+            $siswa = Siswa::find($siswaId);
+            if ($siswa) {
+                try {
+                    $this->orangTuaService->linkToSiswa($orangTua, $siswa, $validated['hubungan']);
+                } catch (\InvalidArgumentException $e) {
+                    return back()->with('error', $e->getMessage());
+                }
+            }
+        }
+
+        return to_route('data-pengguna.orang-tua.index')->with('status', 'Orang tua berhasil dihubungkan.');
+    }
+
+    private function siswaBiodataRules(?int $siswaId = null): array
+    {
+        $nisnRule = ['nullable', 'string', 'max:20', 'unique:siswas,nisn'];
+        if ($siswaId) {
+            $nisnRule = ['nullable', 'string', 'max:20', 'unique:siswas,nisn,' . $siswaId];
+        }
+
+        return [
+            'jenis_kelamin' => ['nullable', 'in:L,P'],
+            'tempat_lahir' => ['nullable', 'string', 'max:100'],
+            'tanggal_lahir' => ['nullable', 'date'],
+            'nisn' => $nisnRule,
+            'nik' => ['nullable', 'string', 'max:16'],
+            'agama' => ['nullable', 'string', 'max:30'],
+            'alamat' => ['nullable', 'string'],
+            'telepon' => ['nullable', 'string', 'max:30'],
+            'status' => ['nullable', 'in:aktif,lulus,pindah,keluar'],
+            'nama_ayah' => ['nullable', 'string', 'max:255'],
+            'nama_ibu' => ['nullable', 'string', 'max:255'],
+            'nama_wali' => ['nullable', 'string', 'max:255'],
+        ];
+    }
+
+    private function siswaBiodataPayload(array $validated): array
+    {
+        return [
+            'jenis_kelamin' => $validated['jenis_kelamin'] ?? null,
+            'tempat_lahir' => $validated['tempat_lahir'] ?? null,
+            'tanggal_lahir' => $validated['tanggal_lahir'] ?? null,
+            'nisn' => $validated['nisn'] ?? null,
+            'nik' => $validated['nik'] ?? null,
+            'agama' => $validated['agama'] ?? null,
+            'alamat' => $validated['alamat'] ?? null,
+            'telepon' => $validated['telepon'] ?? null,
+            'status' => $validated['status'] ?? 'aktif',
+            'nama_ayah' => $validated['nama_ayah'] ?? null,
+            'nama_ibu' => $validated['nama_ibu'] ?? null,
+            'nama_wali' => $validated['nama_wali'] ?? null,
+        ];
     }
 
     private function getOrCreateRole(string $name): Role
