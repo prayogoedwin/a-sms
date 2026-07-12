@@ -40,7 +40,7 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse($siswas as $siswa)
+                @foreach($siswas as $siswa)
                     @php
                         $aktif = $siswa->jenisPembayarans->where('aktif', true)->map(fn ($j) => $j->jenisPembayaran?->nama)->filter()->implode(', ');
                     @endphp
@@ -53,7 +53,7 @@
                             <a href="{{ route('keuangan.assign-jenis-pembayaran.edit', $siswa) }}" class="text-blue-600 dark:text-blue-400 hover:underline">Assign</a>
                         </td>
                     </tr>
-                @endforelse
+                @endforeach
             </tbody>
         </table>
     </div>

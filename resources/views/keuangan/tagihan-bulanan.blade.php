@@ -73,7 +73,7 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse($tagihans as $tagihan)
+                @foreach($tagihans as $tagihan)
                     <tr class="border-b border-gray-100 dark:border-gray-700">
                         <td class="py-2 pr-4">{{ $tagihan->siswa->nama }}</td>
                         <td class="py-2 pr-4">{{ $tagihan->siswa->kelas ? $tagihan->siswa->kelas->tingkat->nama . ' ' . $tagihan->siswa->kelas->nama_kelas : '—' }}</td>
@@ -90,7 +90,7 @@
                             @endif
                         </td>
                     </tr>
-                @endforelse
+                @endforeach
             </tbody>
         </table>
     </div>

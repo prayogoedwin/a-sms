@@ -27,7 +27,7 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse($pembayarans as $p)
+                @foreach($pembayarans as $p)
                     <tr class="border-b border-gray-100 dark:border-gray-700">
                         <td class="py-2 pr-4">{{ $p->tanggal->format('d/m/Y') }}</td>
                         <td class="py-2 pr-4">{{ $p->siswa->nama }}</td>
@@ -36,7 +36,7 @@
                         <td class="py-2 pr-4 capitalize">{{ $p->metode }}</td>
                         <td class="py-2 pr-4">{{ $p->dicatatOleh->name }}</td>
                     </tr>
-                @endforelse
+                @endforeach
             </tbody>
         </table>
     </div>
